@@ -1,18 +1,24 @@
 package com.project.pdfwizard.service;
 
 import lombok.RequiredArgsConstructor;
+import org.apache.pdfbox.Loader;
+
+import org.apache.pdfbox.io.*;
+import org.apache.pdfbox.multipdf.PDFMergerUtility;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDPageContentStream;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.font.PDFont;
-import org.apache.pdfbox.pdmodel.font.PDType0Font;
+
 import org.apache.pdfbox.pdmodel.font.PDType1Font;
 import org.apache.pdfbox.pdmodel.font.Standard14Fonts;
 import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayOutputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -104,4 +110,28 @@ public class PdfServiceImpl implements IPdfService {
 
 
     }
+
+
+    @Override
+    public List<ByteArrayOutputStream> split(InputStream pdfStream, int perPage) throws IOException {
+        byte[] pdfBytes = pdfStream.readAllBytes();
+        try (PDDocument doc = Loader.loadPDF(pdfBytes)) {
+            int total = doc.getNumberOfPages();
+            List<ByteArrayOutputStream> result = new ArrayList<>();
+            for (int i = 0; i < total; i += perPage) {
+                PDDocument part = new PDDocument();
+                for (int p = i; p < Math.min(i + perPage, total); p++) {
+                    part.addPage(doc.getPage(p));
+                }
+                ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                part.save(baos);
+                result.add(baos);
+                part.close();
+
+            }
+            return result;
+        }
+    }
+
+
 }

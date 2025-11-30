@@ -32,5 +32,14 @@ public class FileStorageService {
         return target.toAbsolutePath().toString();
     }
 
+    public InputStream retrieve(String storagePath) throws IOException {
+        return Files.newInputStream(Paths.get(storagePath), StandardOpenOption.READ);
+    }
+
+
+    public boolean delete(String storagePath) throws IOException {
+        return Files.deleteIfExists(Paths.get(storagePath));
+    }
+
 
 }
